@@ -1,0 +1,59 @@
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+
+int main() {
+  // Create an empty signal set
+  sigset_t signals;
+  if(sigemptyset(&signals)) {
+    perror("sigemptyset failed");
+    exit(2);
+  }
+
+  // Add SIGINT to the signal set
+  if(sigaddset(&signals, SIGINT)) {
+    perror("sigaddset failed");
+    exit(2);
+  }
+    if(sigaddset(&signals, SIGALRM)) {
+    perror("sigaddset failed");
+    exit(2);
+  }
+    if(sigaddset(&signals, SIGUSR1)) {
+    perror("sigaddset failed");
+    exit(2);
+  }  
+
+  // Mask the signals in our set so they do not run signal handlers
+  if(sigprocmask(SIG_BLOCK, &signals, NULL)) {
+    perror("sigprocmask failed");
+    exit(2);
+  }
+
+  printf("PID: %d
+
+  // Loop ten times
+  for(int i=0; i<10; i++) {
+    // Wait for a signal in the set
+    int signal;
+    if(sigwait(&signals, &signal)) {
+      perror("sigwait failed");
+      exit(2);
+    }
+
+    // Print a message
+    if(signal == 14){
+    printf(" %d: Received signal %s\n", i, "SIGALRM");
+    }
+    else if(signal == 10){
+     printf(" %d: Received signal %s\n", i, "SIGUSR1");
+    }
+    else{
+      printf(" %d: Received signal %s\n", i, "SIGINT");
+    }
+
+  }
+
+  return 0;
+}

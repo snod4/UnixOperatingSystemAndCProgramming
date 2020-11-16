@@ -1,0 +1,16 @@
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <sys/types.h>
+
+int main(int argv, char * args[]){
+  
+  for(int i = 0; i < atoi(args[3]); i++){
+    if(kill(atoi(args[1]), atoi(args[2])) == -1){
+      perror("Failed to kill process");
+      exit(2);
+    };
+  }
+  return 0;
+}

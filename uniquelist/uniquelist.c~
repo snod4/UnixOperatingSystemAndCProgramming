@@ -1,0 +1,69 @@
+#include "uniquelist.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
+//Problem with way struct is initalized. Not self-contained. Proeblems when
+//nothing is read in with printing and destroying data structures --need
+//to find a better way to implement it
+
+/// Initialize a new uniquelist
+void uniquelist_init(uniquelist_t* s) {
+  s->last = NULL;
+  
+}
+
+/// Destroy a uniquelist
+void uniquelist_destroy(uniquelist_t* s) {
+  uniquelist_t * temp = s->next;
+  uniquelist_t * current;
+  while(temp != NULL){
+    current = temp;
+    temp = temp->next;
+    free(current);
+  }
+ 
+  s = NULL;
+  
+  
+  
+}
+
+/// Add an element to a uniquelist, unless it's already in the uniquelist
+void uniquelist_insert(uniquelist_t* s, int n) {
+  uniquelist_t * temp = malloc(sizeof(uniquelist_t));
+  uniquelist_t * loopTemp = s;
+  int found = 0;
+  if(s->last == NULL){
+    s->val = n;
+    s->last = s;
+    s->next = NULL;
+    
+  }
+  while(loopTemp != NULL){
+    if(loopTemp->val == n){
+      found = 1;
+      break;
+    }
+    loopTemp = loopTemp->next;
+  }
+  
+  if(!found){
+  temp->val = n;
+  temp->next = NULL;
+  temp->last = NULL;
+  (s->last)->next = temp;
+  s->last = temp;
+  }
+}
+
+/// Print all the numbers in a uniquelist
+void uniquelist_print_all(uniquelist_t* s) {
+  if(s->last != NULL){
+    while(s != NULL){
+      printf("%d ", s->val);
+      s = s->next;
+    }
+  }
+}

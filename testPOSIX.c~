@@ -1,0 +1,12 @@
+#include <stdio.h>
+#include <string.h>
+
+
+int main(){
+
+  char * test = "This is a test";
+
+  printf("%s\n", strsep(test, " "));
+  printf("%s\n", test);
+  return 0;
+}

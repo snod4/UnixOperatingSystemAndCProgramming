@@ -1,0 +1,119 @@
+#include "dict.hh"
+#include <pthread.h>
+#include<stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void linkedListAdd(linked_list_t * list, const char * key, int value);
+node_t * linkedListFind(linked_list_t * list, const char * key);
+
+// Initialize a dictionary
+void dict_init(my_dict_t* dict) {
+  //intialize every linked_list in the array
+  for(int i = 0; i < CHARS; i++) {
+    dict->array[i].head = NULL;
+    pthread_mutex_init(&dict->array[i].lock, NULL);
+  }
+}
+
+// Destroy a dictionary
+void dict_destroy(my_dict_t* dict) {
+  for(int i = 0; i < CHARS; i++) {
+    pthread_mutex_lock(&dict->array[i].lock);
+    //deletes every linked_list item 
+    while(dict->array[i].head != NULL) {
+      node_t* temp = dict->array[i].head;
+      dict->array[i].head = dict->array[i].head->next;
+      free(temp);
+    }
+    pthread_mutex_unlock(&dict->array[i].lock);
+  }
+}
+
+// Set a value in a dictionary
+void dict_set(my_dict_t* dict, const char* key, int value) {
+  int index = (int) key[0];
+  //modifies existing value if the key is already in the dictionary
+  if(dict_contains(dict, key)) {
+    node_t * cur = linkedListFind(&dict->array[index], key);
+    pthread_mutex_lock(&dict->array[index].lock);
+    cur->value = value;
+    pthread_mutex_unlock(&dict->array[index].lock);  
+  } else {
+    linkedListAdd(&dict->array[index], key, value);
+  }
+}
+
+// Check if a dictionary contains a key
+bool dict_contains(my_dict_t* dict, const char* key) {
+  int index = (int) key[0];
+  return (linkedListFind(&dict->array[index], key) != NULL);
+}
+
+// Get a value in a dictionary
+int dict_get(my_dict_t* dict, const char* key) {
+  int index = (int) key[0];
+  node_t * temp = NULL;
+  if((temp = linkedListFind(&dict->array[index], key)) != NULL){
+    return temp->value;
+  }
+  return -1;
+}
+
+// Remove a value from a dictionary
+void dict_remove(my_dict_t* dict, const char* key) {
+  int index = (int) key[0];
+  pthread_mutex_lock(&dict->array[index].lock);
+  //loops through linked_list and removes the node given by the key if it is in the linked_list
+  linked_list_t * list = &dict->array[index];
+  node_t * temp = list->head;
+  node_t * prev = NULL;
+  while(temp != NULL){
+    if(strcmp(temp->key, key) == 0){
+      if(prev != NULL){
+        prev->next = temp->next;
+        free(temp);
+      }
+      else{
+        list->head = NULL;
+        free(temp);
+      }
+      pthread_mutex_unlock(&dict->array[index].lock);
+      return;
+    }
+    prev = temp;
+    temp = temp->next;
+  }
+  pthread_mutex_unlock(&dict->array[index].lock);
+  
+  
+}
+//adds value to the head of the given linked_list
+void linkedListAdd(linked_list_t * list, const char * key, int value) {
+
+  //creates new node
+  node_t * newNode = (node_t *) malloc(sizeof(node_t));
+  newNode->key = (char *) malloc(strlen(key) * sizeof(char));
+  strncpy(newNode->key, key, strlen(key)+1);
+  newNode->value = value;
+  //adds node to bin denoted by the first character in key
+  pthread_mutex_lock(&list->lock);
+  newNode->next = list->head;
+  list->head = newNode;
+  pthread_mutex_unlock(&list->lock);
+}
+
+//finds element in linked_list if marked by key 
+node_t * linkedListFind(linked_list_t * list, const char * key) {
+  pthread_mutex_lock(&list->lock);
+  node_t * temp = list->head;
+  while(temp != NULL) {
+    if(strcmp(key, temp->key) == 0) {
+      pthread_mutex_unlock(&list->lock);
+      return temp;
+    }
+    temp = temp->next;
+  }
+  pthread_mutex_unlock(&list->lock);
+  return NULL;
+}
